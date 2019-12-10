@@ -49,8 +49,8 @@ struct dir_panel
   struct cbm_dirent tail_dir_entry;
   struct dir_list_elem *dir_list;
   unsigned dir_list_length;
-  unsigned char view_y;
-  unsigned char cursor_y;
+  unsigned view_y;
+  unsigned cursor_y;
 };
 
 extern struct dir_panel dir_panels[DIR_PANEL_MAX];
