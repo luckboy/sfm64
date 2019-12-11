@@ -23,7 +23,7 @@ clean:
 
 cmd_channel.o: cmd_channel.c cmd_channel.h
 dir_panel.o: dir_panel.c dir_panel.h cmd_channel.h screen.h util.h
-main.o: main.c cmd_channel.h main_menu.h screen.h
+main.o: main.c cmd_channel.h dir_panel.h main_menu.h screen.h
 main_menu.o: main_menu.c main_menu.h dir_panel.h screen.h util.h
 screen.o: screen.c screen.h
 util.o: util.c util.h
