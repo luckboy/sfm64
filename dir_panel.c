@@ -59,7 +59,7 @@ static void draw_header_dir_entry(struct dir_panel *dir_panel)
   cputc(0xb0);
   if(dir_panel->has_header_dir_entry) {
     size_t i, len;
-    cprintf("Dev%02d", dir_panel->device);
+    cprintf("Dev%02d", (unsigned) (dir_panel->device));
     cputc(0x60);
     safely_cputs(dir_panel->header_dir_entry.name);
     len = strlen(dir_panel->header_dir_entry.name);
@@ -215,7 +215,10 @@ void dir_panel_reload(struct dir_panel *dir_panel)
   unsigned char lfn = 14;
   unsigned char res;
   size_t i, capacity;
-  if(dir_panel->dir_list != NULL) free(dir_panel->dir_list);
+  if(dir_panel->dir_list != NULL) {
+    free(dir_panel->dir_list);
+    dir_panel->dir_list = NULL;
+  }
   dir_panel->status = DIR_PANEL_STATUS_LOADING;
   dir_panel->has_header_dir_entry = 0;
   dir_panel->has_tail_dir_entry = 0;
