@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cmd_channel.h"
 #include "dir_panel.h"
 #include "screen.h"
 #include "util.h"
@@ -214,6 +215,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
   static struct cbm_dirent entry;
   unsigned char lfn = 14;
   unsigned char res;
+  int res2;
   size_t i, capacity;
   if(dir_panel->dir_list != NULL) {
     free(dir_panel->dir_list);
@@ -235,11 +237,34 @@ void dir_panel_reload(struct dir_panel *dir_panel)
     dir_panel_draw(dir_panel);
     return;
   }
+  res2 = cmd_channel_read(dir_panel->device, &(dir_panel->error));
+  if(res2 == -1) {
+    dir_panel->error = _stroserror(_oserror);
+    cbm_closedir(lfn);
+    dir_panel->status = DIR_PANEL_STATUS_ERROR;
+    dir_panel->has_header_dir_entry = 0;
+    dir_panel->has_tail_dir_entry = 0;
+    dir_panel->view_y = 0;
+    dir_panel->cursor_y = 0;
+    dir_panel_draw(dir_panel);
+    return;    
+  } else if(res2 > 0) {
+    cbm_closedir(lfn);
+    cmd_channel_close(dir_panel->device);
+    dir_panel->status = DIR_PANEL_STATUS_ERROR;
+    dir_panel->has_header_dir_entry = 0;
+    dir_panel->has_tail_dir_entry = 0;
+    dir_panel->view_y = 0;
+    dir_panel->cursor_y = 0;
+    dir_panel_draw(dir_panel);
+    return;
+  }
   capacity = 8;
   dir_panel->dir_list = malloc(sizeof(struct dir_list_elem) * capacity);
   if(dir_panel->dir_list == NULL) {
     dir_panel->error = "Out of memory";
     cbm_closedir(lfn);
+    cmd_channel_close(dir_panel->device);
     dir_panel->status = DIR_PANEL_STATUS_ERROR;
     dir_panel->has_header_dir_entry = 0;
     dir_panel->has_tail_dir_entry = 0;
@@ -264,6 +289,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
           if(dir_panel->dir_list == NULL) {
             dir_panel->error = "Out of memory";
             cbm_closedir(lfn);
+            cmd_channel_close(dir_panel->device);
             dir_panel->status = DIR_PANEL_STATUS_ERROR;
             dir_panel->has_header_dir_entry = 0;
             dir_panel->has_tail_dir_entry = 0;
@@ -285,6 +311,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
   }
   dir_panel->dir_list_length = i;
   cbm_close(lfn);
+  cmd_channel_close(dir_panel->device);
   dir_panel->status = DIR_PANEL_STATUS_LOADED;
   dir_panel->view_y = 0;
   dir_panel->cursor_y = 0;

@@ -15,21 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "cmd_channel.h"
-#include "dir_panel.h"
-#include "screen.h"
-#include "main_menu.h"
+#ifndef _CMD_CHANNEL_H
+#define _CMD_CHANNEL_H
 
-int main(void)
-{
-  initialize_cmd_channels();
-  initialize_screen();
-  initialize_dir_panels();
-  main_menu_draw();
-  dir_panel_reload(current_dir_panel);
-  main_menu_loop();
-  finalize_dir_panels();
-  finalize_screen();
-  finalize_cmd_channels();
-  return 0;
-}
+void initialize_cmd_channels(void);
+void finalize_cmd_channels(void);
+
+int cmd_channel_read(unsigned char device, const char **msg);
+int cmd_channel_write(unsigned char device, const char *cmd);
+void cmd_channel_close(unsigned device);
+
+#endif
