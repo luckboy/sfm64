@@ -119,7 +119,7 @@ static void draw_title(const char *title, unsigned char width)
   for(i = 0; i < n; i++) {
     cputc(' ');
   }
-  cputs(title);
+  safely_cputs(title);
   for(i = 0; i < width - n - len; i++) {
     cputc(' ');
   }
