@@ -20,11 +20,23 @@
 #include "screen.h"
 #include "util.h"
 
+int max(int x, int y)
+{ return x < y ? y : x; } 
+
+int min(int x, int y)
+{ return x < y ? x : y; }
+
 unsigned char center_x(unsigned char width)
 { return (screen_width >> 1) - ((width + 1) >> 1); }
 
 unsigned char center_y(unsigned char height)
 { return (screen_height >> 1) - ((height + 1) >> 1); }
+
+unsigned char center(unsigned char n, unsigned char i)
+{ return (n >> 1) - ((i + 1) >> 1); }
+
+unsigned char even(unsigned char i)
+{ return ((i + 1) >> 1) << 1; }
 
 void safely_cputc(char c)
 {

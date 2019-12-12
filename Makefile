@@ -4,7 +4,7 @@ LDFLAGS =
 C1541 = c1541
 SYS = c64
 
-OBJS = cmd_channel.o dir_panel.o main.o main_menu.o screen.o util.o
+OBJS = cmd_channel.o dialog.o dir_panel.o main.o main_menu.o screen.o util.o
 
 .c.o:
 	$(CC) -c -t $(SYS) $(CFLAGS) -o $@ $<
@@ -22,8 +22,9 @@ clean:
 	rm -f sfm64 $(OBJS) *.d64 *~
 
 cmd_channel.o: cmd_channel.c cmd_channel.h
+dialog.o: dialog.c dialog.h screen.h util.h
 dir_panel.o: dir_panel.c dir_panel.h cmd_channel.h screen.h util.h
-main.o: main.c cmd_channel.h dir_panel.h main_menu.h screen.h
+main.o: main.c cmd_channel.h dialog.h dir_panel.h main_menu.h screen.h
 main_menu.o: main_menu.c main_menu.h dir_panel.h screen.h util.h
 screen.o: screen.c screen.h
 util.o: util.c util.h

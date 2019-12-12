@@ -18,8 +18,12 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+int max(int x, int y);
+int min(int x, int y);
 unsigned char center_x(unsigned char width);
 unsigned char center_y(unsigned char height);
+unsigned char center(unsigned char n, unsigned char i);
+unsigned char even(unsigned char i);
 void safely_cputc(char c);
 void safely_cputs(const char *s);
 

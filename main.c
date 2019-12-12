@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "cmd_channel.h"
+#include "dialog.h"
 #include "dir_panel.h"
 #include "screen.h"
 #include "main_menu.h"
@@ -25,9 +26,11 @@ int main(void)
   initialize_cmd_channels();
   initialize_screen();
   initialize_dir_panels();
+  initialize_dialogs();
   main_menu_draw();
   dir_panel_reload(current_dir_panel);
   main_menu_loop();
+  finalize_dialogs();
   finalize_dir_panels();
   finalize_screen();
   finalize_cmd_channels();
