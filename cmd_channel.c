@@ -26,7 +26,7 @@
 struct cmd_channel
 {
   unsigned char lfn;
-  char is_opened;
+  unsigned char count;
   char message[39];
 };
 
@@ -37,7 +37,7 @@ void initialize_cmd_channels(void)
   unsigned char i;
   for(i = 0; i < CMD_CHANNEL_MAX; i++) {
     cmd_channels[i].lfn = 16 + i;
-    cmd_channels[i].is_opened = 0;
+    cmd_channels[i].count = 0;
   }
 }
 
@@ -45,7 +45,7 @@ void finalize_cmd_channels(void)
 {
   unsigned char i;
   for(i = 0; i < CMD_CHANNEL_MAX; i++) {
-    if(cmd_channels[i].is_opened) cbm_close(cmd_channels[i].lfn);
+    if(cmd_channels[i].count > 0) cbm_close(cmd_channels[i].lfn);
   }
 }
 
@@ -86,15 +86,15 @@ static char *cbm_get_line(unsigned char lfn, char *buf, int count)
 static int open_cmd_channel(unsigned char device)
 {
   unsigned char i = device - 8;
-  if(!cmd_channels[i].is_opened) {
+  if(cmd_channels[i].count == 0) {
     unsigned char res;
     res = cbm_open(cmd_channels[i].lfn, device, 15, "");
     if(res != 0) {
       cbm_close(cmd_channels[i].lfn);
       return -1;
     }
-    cmd_channels[i].is_opened = 1;
   }
+  cmd_channels[i].count++;
   return 0;
 }
 
@@ -128,8 +128,6 @@ int cmd_channel_write(unsigned char device, const char *cmd)
 void cmd_channel_close(unsigned device)
 {
   unsigned char i = device - 8;
-  if(cmd_channels[i].is_opened) {
-    cbm_close(cmd_channels[i].lfn);
-    cmd_channels[i].is_opened = 0;
-  }
+  if(cmd_channels[i].count == 1) cbm_close(cmd_channels[i].lfn);
+  if(cmd_channels[i].count > 0) cmd_channels[i].count--;
 }
