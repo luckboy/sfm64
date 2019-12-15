@@ -98,12 +98,15 @@ static int open_cmd_channel(unsigned char device)
   return 0;
 }
 
-int cmd_channel_read(unsigned char device, const char **msg)
+int cmd_channel_read(unsigned char device, const char **msg, char must_open)
 {
   unsigned char i = device - 8;
-  int res = open_cmd_channel(device);
+  int res;
   char *tptr;
-  if(res == -1) return -1;
+  if(must_open) {
+    res = open_cmd_channel(device);
+    if(res == -1) return -1;
+  }
   if(cbm_get_line(cmd_channels[i].lfn, cmd_channels[i].message, 39) == NULL) {
     cmd_channel_close(device);
     return -1;
@@ -113,11 +116,14 @@ int cmd_channel_read(unsigned char device, const char **msg)
   return res >= 20 ? res : 0;
 }
 
-int cmd_channel_write(unsigned char device, const char *cmd)
+int cmd_channel_write(unsigned char device, const char *cmd, char must_open)
 {
   unsigned char i = device - 8;
-  int res = open_cmd_channel(device);
-  if(res == -1) return -1;
+  int res;
+  if(must_open) {
+    res = open_cmd_channel(device);
+    if(res == -1) return -1;
+  }
   res = cbm_write(cmd_channels[i].lfn, cmd, strlen(cmd));
   if(res == -1) {
     cmd_channel_close(device);

@@ -237,7 +237,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
     dir_panel_draw(dir_panel);
     return;
   }
-  res2 = cmd_channel_read(dir_panel->device, &(dir_panel->error));
+  res2 = cmd_channel_read(dir_panel->device, &(dir_panel->error), 1);
   if(res2 == -1) {
     dir_panel->error = _stroserror(_oserror);
     cbm_closedir(lfn);

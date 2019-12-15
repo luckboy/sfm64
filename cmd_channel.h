@@ -21,8 +21,8 @@
 void initialize_cmd_channels(void);
 void finalize_cmd_channels(void);
 
-int cmd_channel_read(unsigned char device, const char **msg);
-int cmd_channel_write(unsigned char device, const char *cmd);
+int cmd_channel_read(unsigned char device, const char **msg, char must_open);
+int cmd_channel_write(unsigned char device, const char *cmd, char must_open);
 void cmd_channel_close(unsigned device);
 
 #endif
