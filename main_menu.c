@@ -362,6 +362,7 @@ static void copy_files(void)
       redraw();
       message_dialog_set("Error", _stroserror(_oserror));
       cbm_close(src_lfn);
+      cmd_channel_close(src_device);
       message_dialog_draw();
       message_dialog_loop();
       break;
