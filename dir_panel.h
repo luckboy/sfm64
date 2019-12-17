@@ -51,6 +51,7 @@ struct dir_panel
   unsigned dir_list_length;
   unsigned view_y;
   unsigned cursor_y;
+  char error_buffer[39];
 };
 
 extern struct dir_panel dir_panels[DIR_PANEL_MAX];
