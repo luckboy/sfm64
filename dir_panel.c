@@ -42,6 +42,8 @@ void initialize_dir_panels(void)
     dir_panels[i].dir_list_length = 0;
     dir_panels[i].view_y = 0;
     dir_panels[i].cursor_y = 0;
+    dir_panels[i].selected_elem_indices = NULL;
+    dir_panels[i].selected_elem_index_count = 0;
   }
   current_dir_panel = &dir_panels[0];
 }
@@ -229,6 +231,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
   dir_panel->status = DIR_PANEL_STATUS_LOADING;
   dir_panel->has_header_dir_entry = 0;
   dir_panel->has_tail_dir_entry = 0;
+  dir_panel->selected_elem_index_count = 0;
   dir_panel_draw(dir_panel);
   res = cbm_opendir(lfn, dir_panel->device, "$");
   if(res != 0) {
