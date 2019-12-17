@@ -318,7 +318,10 @@ static void copy_files(void)
     const char *error;
     char is_stop;
     sprintf(file_name_with_colon, "%s:", src_file_name);
-    progresses[0].count = 0;
+    if(size != 0)
+      progresses[0].count = 0;
+    else
+      progresses[0].count = PROGRESS_MAX;
     progress_dialog_draw();
     sprintf(src_cbm_file_name, "%s,%s,r", src_file_name, file_type_to_str_for_copy(src_file_type));
     if(are_many_files) {
@@ -426,7 +429,10 @@ static void copy_files(void)
         break;
       }
       blocks++;
-      progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size;
+      if(size != 0)
+        progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size;
+      else
+        progresses[0].count = PROGRESS_MAX;
       progresses[0].count = umin(PROGRESS_MAX, progresses[0].count);
       progress_dialog_draw();
     }
