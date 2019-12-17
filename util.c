@@ -17,6 +17,7 @@
  */
 #include <conio.h>
 #include <ctype.h>
+#include <string.h>
 #include "screen.h"
 #include "util.h"
 
@@ -24,6 +25,12 @@ int max(int x, int y)
 { return x < y ? y : x; } 
 
 int min(int x, int y)
+{ return x < y ? x : y; }
+
+unsigned umax(unsigned x, unsigned y)
+{ return x < y ? y : x; } 
+
+unsigned umin(unsigned x, unsigned y)
 { return x < y ? x : y; }
 
 unsigned char center_x(unsigned char width)
@@ -52,4 +59,14 @@ void safely_cputs(const char *s)
     safely_cputc(*s);
     s++;
   }
+}
+
+char check_file_name(const char *file_name)
+{
+  const char *s = file_name;
+  while(*s) {
+    if(strchr("*:=?@", *s) != NULL) return 0;
+    s++;
+  }
+  return 1;
 }

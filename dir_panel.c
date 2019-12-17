@@ -222,6 +222,10 @@ void dir_panel_reload(struct dir_panel *dir_panel)
     free(dir_panel->dir_list);
     dir_panel->dir_list = NULL;
   }
+  if(dir_panel->selected_elem_indices != NULL) {
+    free(dir_panel->selected_elem_indices);
+    dir_panel->selected_elem_indices = NULL;
+  }
   dir_panel->status = DIR_PANEL_STATUS_LOADING;
   dir_panel->has_header_dir_entry = 0;
   dir_panel->has_tail_dir_entry = 0;
@@ -348,4 +352,36 @@ void dir_panel_select_or_unselect(struct dir_panel *dir_panel)
   if(dir_panel->dir_list_length == 0) return;
   dir_panel->dir_list[dir_panel->cursor_y].is_selected ^= 1;
   dir_panel_draw(dir_panel);
+}
+
+unsigned *dir_panel_selected_elem_indices(struct dir_panel *dir_panel, unsigned *count)
+{
+  unsigned i, j;
+  if(dir_panel->selected_elem_indices == NULL) {
+    size_t capacity = dir_panel->dir_list_length > 0 ? dir_panel->dir_list_length : 1;
+    dir_panel->selected_elem_indices = malloc(sizeof(int) * capacity);
+    if(dir_panel->selected_elem_indices == NULL) return NULL;
+  }
+  j = 0;
+  for(i = 0; i < dir_panel->dir_list_length; i++) {
+    if(dir_panel->dir_list[i].is_selected) {
+      dir_panel->selected_elem_indices[j] = i;
+      j++;
+    }
+  }
+  if(j == 0) {
+    if(dir_panel->dir_list_length > 0) {
+      dir_panel->selected_elem_indices[0] = dir_panel->cursor_y;
+      j++;
+    }
+  }
+  dir_panel->selected_elem_index_count = *count = j;
+  return dir_panel->selected_elem_indices;
+}
+
+void dir_panel_set_status_to_unloaded(struct dir_panel *dir_panel)
+{
+  dir_panel->status = DIR_PANEL_STATUS_UNLOADED;
+  dir_panel->has_header_dir_entry = 0;
+  dir_panel->has_tail_dir_entry = 0;
 }

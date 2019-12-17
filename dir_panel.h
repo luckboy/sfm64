@@ -52,6 +52,8 @@ struct dir_panel
   unsigned view_y;
   unsigned cursor_y;
   char error_buffer[39];
+  unsigned *selected_elem_indices;
+  unsigned selected_elem_index_count;
 };
 
 extern struct dir_panel dir_panels[DIR_PANEL_MAX];
@@ -67,5 +69,7 @@ char dir_panel_is_loaded(struct dir_panel *dir_panel);
 void dir_panel_move_cursor_up(struct dir_panel *dir_panel);
 void dir_panel_move_cursor_down(struct dir_panel *dir_panel);
 void dir_panel_select_or_unselect(struct dir_panel *dir_panel);
+unsigned *dir_panel_selected_elem_indices(struct dir_panel *dir_panel, unsigned *count);
+void dir_panel_set_status_to_unloaded(struct dir_panel *dir_panel);
 
 #endif
