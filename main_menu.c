@@ -111,9 +111,22 @@ static char check_prefix_and_suffix_length(const char *prefix, const char *suffi
   return 1;
 }
 
+static int rename_file(unsigned char device, const char *old_file_name, const char *new_file_name, const char **msg)
+{
+  static char buf[16 + 1 + 16 + 2 + 1];
+  int res;
+  sprintf(buf, "r:%s=%s", new_file_name, old_file_name);
+  res = cmd_channel_write(device, buf, 1);
+  if(res == -1) return -1;
+  res = cmd_channel_read(device, msg, 0);
+  if(res == -1) return -1;
+  cmd_channel_close(device);
+  return res;
+}
+
 static int delete_file(unsigned char device, const char *file_name, const char **msg)
 {
-  static char buf[16 +2 + 1];
+  static char buf[16 + 2 + 1];
   int res;
   sprintf(buf, "s:%s", file_name);
   res = cmd_channel_write(device, buf, 1);
@@ -449,6 +462,222 @@ static void copy_files(void)
   reload_or_set_status_to_unloaded(dst_device);
 }
 
+static void rename_files(void)
+{
+  static char new_file_name[17];
+  static char new_prefix[17];
+  static char new_suffix[17];
+  static struct input inputs_for_one_file[1] = {
+    {
+      "New file name:",
+      new_file_name,
+      16
+    }
+  };
+  static struct input inputs_for_many_files[2] = {
+    {
+      "New prefix:",
+      new_prefix,
+      16
+    },
+    {
+      "New suffix:",
+      new_suffix,
+      16
+    }
+  };
+  static struct progress progresses[1] = {
+    {
+      "Renaming files:",
+      0,
+      PROGRESS_MAX
+    }
+  };
+  char are_many_files;
+  unsigned *selected_elem_indices;
+  unsigned selected_elem_index_count;
+  unsigned i;
+  selected_elem_indices = dir_panel_selected_elem_indices(current_dir_panel, &selected_elem_index_count);
+  if(selected_elem_indices == NULL) {
+    message_dialog_set("Error", "Out of memory");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  if(selected_elem_index_count == 0) {
+    message_dialog_set("No files", "No selected files");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }  
+  are_many_files = (selected_elem_index_count > 1);
+  if(are_many_files) {
+    new_prefix[0] = 0;
+    new_suffix[0] = 0;
+  } else {
+    unsigned i = selected_elem_indices[0];
+    strcpy(new_file_name, current_dir_panel->dir_list[i].entry.name);
+  }
+  while(1) {
+    if(are_many_files)
+      input_dialog_set("Rename", inputs_for_many_files, 2);
+    else
+      input_dialog_set("Rename", inputs_for_one_file, 1);
+    input_dialog_draw();
+    if(!input_dialog_loop()) {
+      redraw();
+      return;
+    }
+    redraw();
+    if(are_many_files) {
+      if(!check_prefix_and_suffix_length(new_prefix, new_suffix)) {
+        message_dialog_set("Field", "New prefix or new suffix is too long");
+        message_dialog_draw();
+        message_dialog_loop();
+        redraw();
+        continue;
+      }
+      if(!check_file_name(new_prefix)) {
+        message_dialog_set("Field", "Incorrect new prefix");
+        message_dialog_draw();
+        message_dialog_loop();
+        redraw();
+        continue;
+      }
+      if(!check_file_name(new_suffix)) {
+        message_dialog_set("Field", "Incorrect new suffix");
+        message_dialog_draw();
+        message_dialog_loop();
+        redraw();
+        continue;
+      }
+    } else {
+      if(!check_file_name(new_file_name)) {
+        message_dialog_set("Field", "Incorrect new file name");
+        message_dialog_draw();
+        message_dialog_loop();
+        redraw();
+        continue;
+      }
+    }
+    if(are_many_files ?
+      new_prefix[0] == 0 && new_suffix[0] == 0 :
+      strcmp(current_dir_panel->dir_list[selected_elem_indices[0]].entry.name, new_file_name) == 0) {
+      message_dialog_set("Field", "Can't rename to same file names");
+      message_dialog_draw();
+      message_dialog_loop();
+      redraw();
+      continue;
+    }
+    break;
+  }
+  progresses[0].count = 0;
+  progress_dialog_set("Raneming", progresses, 1);
+  progress_dialog_draw();
+  for(i = 0; i < selected_elem_index_count; i++) {
+    unsigned j = selected_elem_indices[i];
+    unsigned char device = current_dir_panel->device;
+    char *old_file_name = current_dir_panel->dir_list[j].entry.name;
+    int res;
+    const char *error;
+    if(are_many_files) {
+      new_file_name[0] = 0;
+      strcat(new_file_name, new_prefix);
+      strcat(new_file_name, old_file_name);
+      strcat(new_file_name, new_suffix);
+    }
+    res = rename_file(device, old_file_name, new_file_name, &error);
+    if(res == -1) {
+      redraw();
+      message_dialog_set("Error", _stroserror(_oserror));
+      message_dialog_draw();
+      message_dialog_loop();
+      break;
+    } else if(res > 0) {
+      redraw();
+      message_dialog_set("Error", error);
+      message_dialog_draw();
+      message_dialog_loop();
+      break;
+    }
+    progresses[0].count = (((unsigned long) (i + 1)) * PROGRESS_MAX) / selected_elem_index_count;
+    progress_dialog_draw();
+  }
+  redraw();
+  dir_panel_reload(current_dir_panel);
+}
+
+void delete_files(void)
+{
+  static struct progress progresses[1] = {
+    {
+      "Deleting files:",
+      0,
+      PROGRESS_MAX
+    }
+  };
+  char are_many_files;
+  unsigned *selected_elem_indices;
+  unsigned selected_elem_index_count;
+  unsigned i;
+  selected_elem_indices = dir_panel_selected_elem_indices(current_dir_panel, &selected_elem_index_count);
+  if(selected_elem_indices == NULL) {
+    message_dialog_set("Error", "Out of memory");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  if(selected_elem_index_count == 0) {
+    message_dialog_set("No files", "No selected files");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }  
+  are_many_files = (selected_elem_index_count > 1);
+  if(are_many_files)
+    yes_no_dialog_set("Delete", "Delete files?");
+  else
+    yes_no_dialog_set("Delete", "Delete file?");
+  yes_no_dialog_draw();
+  if(!yes_no_dialog_loop()) {
+    redraw();
+    return;
+  }
+  redraw();
+  progresses[0].count = 0;
+  progress_dialog_set("Deleting", progresses, 1);
+  progress_dialog_draw();
+  for(i = 0; i < selected_elem_index_count; i++) {
+    unsigned j = selected_elem_indices[i];
+    unsigned char device = current_dir_panel->device;
+    char *file_name = current_dir_panel->dir_list[j].entry.name;
+    int res;
+    const char *error;
+    res = delete_file(device, file_name, &error);
+    if(res == -1) {
+      redraw();
+      message_dialog_set("Error", _stroserror(_oserror));
+      message_dialog_draw();
+      message_dialog_loop();
+      break;
+    } else if(res > 0) {
+      redraw();
+      message_dialog_set("Error", error);
+      message_dialog_draw();
+      message_dialog_loop();
+      break;
+    }
+    progresses[0].count = (((unsigned long) (i + 1)) * PROGRESS_MAX) / selected_elem_index_count;
+    progress_dialog_draw();
+  }
+  redraw();
+  dir_panel_reload(current_dir_panel);  
+}
+
 void main_menu_loop(void)
 {
   unsigned char is_exit = 0;
@@ -496,6 +725,12 @@ void main_menu_loop(void)
       break;
     case 'c':
       copy_files();
+      break;
+    case 'n':
+      rename_files();
+      break;
+    case 'd':
+      delete_files();
       break;
     case 'q':
       is_exit = 1;
