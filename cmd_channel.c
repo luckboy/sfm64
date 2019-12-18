@@ -17,7 +17,6 @@
  */
 #include <cbm.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <string.h>
 #include "cmd_channel.h"
 
@@ -102,7 +101,6 @@ int cmd_channel_read(unsigned char device, const char **msg, char must_open)
 {
   unsigned char i = device - 8;
   int res;
-  char *tptr;
   if(must_open) {
     res = open_cmd_channel(device);
     if(res == -1) return -1;
@@ -111,7 +109,8 @@ int cmd_channel_read(unsigned char device, const char **msg, char must_open)
     cmd_channel_close(device);
     return -1;
   }
-  res = strtol(cmd_channels[i].message, &tptr, 10);
+  res = ((unsigned char) (cmd_channels[i].message[0] - '0')) * 10;
+  res += (unsigned char) (cmd_channels[i].message[1] - '0');
   *msg = cmd_channels[i].message;
   return res >= 20 ? res : 0;
 }
