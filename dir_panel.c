@@ -54,6 +54,8 @@ void finalize_dir_panels(void)
   for(i = 0; i < DIR_PANEL_MAX; i++) {
     if(dir_panels[i].dir_list != NULL)
       free(dir_panels[i].dir_list);
+    if(dir_panels[i].selected_elem_indices != NULL)
+      free(dir_panels[i].selected_elem_indices);
   }
 }
 
