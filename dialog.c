@@ -95,8 +95,8 @@ void finalize_dialogs(void) {}
 
 static void draw_button(const char *label, char is_focused)
 {
-  size_t len = strlen(label);
-  size_t i, n = center(6, len);
+  unsigned char len = strlen(label);
+  unsigned char i, n = center(6, len);
   revers(!is_focused);
   textcolor(SCREEN_COLOR_FOREGROUND);
   for(i = 0; i < n; i++) {
@@ -112,8 +112,8 @@ static void draw_button(const char *label, char is_focused)
 
 static void draw_title(const char *title, unsigned char width)
 {
-  size_t len = strlen(title);
-  size_t i, n = center(width, len);
+  unsigned char len = strlen(title);
+  unsigned char i, n = center(width, len);
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   for(i = 0; i < n; i++) {
@@ -129,7 +129,7 @@ static void draw_title(const char *title, unsigned char width)
 
 static void draw_label(const char *label, unsigned char width)
 {
-  size_t i, len = strlen(label);
+  unsigned char i, len = strlen(label);
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   cputc(' ');
@@ -143,7 +143,7 @@ static void draw_label(const char *label, unsigned char width)
 
 static void draw_text(char *text, unsigned max_text_len, unsigned char width, char is_focused)
 {
-  size_t i, len = strlen(text);
+  unsigned char i, len = strlen(text);
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   cputc(' ');
@@ -171,7 +171,7 @@ static void draw_text(char *text, unsigned max_text_len, unsigned char width, ch
 
 static void draw_empty(unsigned char width)
 {
-  size_t i;
+  unsigned char i;
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   for(i = 0; i < width; i++) {
@@ -183,7 +183,7 @@ static void draw_empty(unsigned char width)
 
 static void draw_one_button(const char *label, unsigned char width, char is_focused)
 {
-  size_t i, n = center(width, 6);
+  unsigned char i, n = center(width, 6);
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   for(i = 0; i < n; i++) {
@@ -199,7 +199,7 @@ static void draw_one_button(const char *label, unsigned char width, char is_focu
 
 static void draw_two_buttons(const char *label1, const char *label2, unsigned char width, char is_focused1, char is_focused2)
 {
-  size_t i, n = center(width, 12 + 2);
+  unsigned char i, n = center(width, 12 + 2);
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   for(i = 0; i < n; i++) {
@@ -217,7 +217,7 @@ static void draw_two_buttons(const char *label1, const char *label2, unsigned ch
 
 static void draw_progress(unsigned count, unsigned max, unsigned char width)
 {
-  size_t i;
+  unsigned char i;
   revers(1);
   textcolor(SCREEN_COLOR_CURSOR);
   cputc(' ');
@@ -255,9 +255,10 @@ void input_dialog_set(const char *title, const struct input *inputs, unsigned ch
   input_dialog.focus_index = 0;
   max_width = even(strlen(input_dialog.title)) + 2;
   for(i = 0; i < input_dialog.input_count; i++) {
-    size_t len = strlen(input_dialog.inputs[i].label);
+    const struct input *input = &(input_dialog.inputs[i]);
+    size_t len = strlen(input->label);
     unsigned char even_len = even(len);
-    unsigned char even_max_len = even(input_dialog.inputs[i].max_text_len + 1);
+    unsigned char even_max_len = even(input->max_text_len + 1);
     max_width = max(max_width, even_len + 2);
     max_width = max(max_width, even_max_len + 2);
   }
@@ -276,13 +277,14 @@ void input_dialog_draw(void)
   draw_title(input_dialog.title, input_dialog.width);
   y++;
   for(i = 0; i < input_dialog.input_count; i++, y += 3) {
+    const struct input *input = &(input_dialog.inputs[i]);
     char is_focused = (i == input_dialog.focus_index);
     gotoxy(x, y);
     draw_empty(input_dialog.width);
     gotoxy(x , y + 1);
-    draw_label(input_dialog.inputs[i].label, input_dialog.width);
+    draw_label(input->label, input_dialog.width);
     gotoxy(x , y + 2);
-    draw_text(input_dialog.inputs[i].text, input_dialog.inputs[i].max_text_len, input_dialog.width, is_focused);
+    draw_text(input->text, input->max_text_len, input_dialog.width, is_focused);
   }
   gotoxy(x, y);
   draw_empty(input_dialog.width);
@@ -307,9 +309,10 @@ char input_dialog_loop(void)
     case CH_DEL:
       i = input_dialog.focus_index;
       if(i < input_dialog.input_count) {
-        size_t len = strlen(input_dialog.inputs[i].text);
+        const struct input *input = &(input_dialog.inputs[i]);
+        size_t len = strlen(input->text);
         if(len > 0) {
-          input_dialog.inputs[i].text[len - 1] = 0;
+          input->text[len - 1] = 0;
           input_dialog_draw();
         }
       }
@@ -355,10 +358,11 @@ char input_dialog_loop(void)
     default:
       if(!iscntrl(c)) {
         if(i < input_dialog.input_count) {
-          size_t len = strlen(input_dialog.inputs[i].text);
+          const struct input *input = &(input_dialog.inputs[i]);
+          size_t len = strlen(input->text);
           if(len < input_dialog.inputs[i].max_text_len) {
-            input_dialog.inputs[i].text[len] = c;
-            input_dialog.inputs[i].text[len + 1] = 0;
+            input->text[len] = c;
+            input->text[len + 1] = 0;
             input_dialog_draw();
           }
         } else {
@@ -387,9 +391,10 @@ void progress_dialog_set(const char *title, const struct progress *progresses, u
   progress_dialog.progress_count = count;
   max_width = even(strlen(progress_dialog.title)) + 2;
   for(i = 0; i < progress_dialog.progress_count; i++) {
-    size_t len = strlen(progress_dialog.progresses[i].label);
+    const struct progress *progress = &(progress_dialog.progresses[i]);
+    size_t len = strlen(progress->label);
     unsigned char even_len = even(len);
-    unsigned char even_max = even(progress_dialog.progresses[i].max);
+    unsigned char even_max = even(progress->max);
     max_width = max(max_width, even_len + 2);
     max_width = max(max_width, even_max + 2);
   }
@@ -407,12 +412,13 @@ void progress_dialog_draw(void)
   draw_title(progress_dialog.title, progress_dialog.width);
   y++;
   for(i = 0; i < progress_dialog.progress_count; i++, y += 3) {
+    const struct progress *progress = &(progress_dialog.progresses[i]);
     gotoxy(x, y);
     draw_empty(progress_dialog.width);
     gotoxy(x , y + 1);
-    draw_label(progress_dialog.progresses[i].label, progress_dialog.width);
+    draw_label(progress->label, progress_dialog.width);
     gotoxy(x , y + 2);
-    draw_progress(progress_dialog.progresses[i].count, progress_dialog.progresses[i].max, progress_dialog.width);    
+    draw_progress(progress->count, progress->max, progress_dialog.width);    
   }
   gotoxy(x, y);
   draw_empty(progress_dialog.width);

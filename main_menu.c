@@ -320,10 +320,11 @@ static void copy_files(void)
   progress_dialog_set("Copying", progresses, 2);
   for(i = 0; i < selected_elem_index_count; i++) {
     unsigned j = selected_elem_indices[i];
+    struct cbm_dirent *entry = &(current_dir_panel->dir_list[j].entry);
     unsigned char src_device = current_dir_panel->device;
-    char *src_file_name = current_dir_panel->dir_list[j].entry.name;
-    unsigned char src_file_type = current_dir_panel->dir_list[j].entry.type;
-    unsigned size = current_dir_panel->dir_list[j].entry.size;
+    char *src_file_name = entry->name;
+    unsigned char src_file_type = entry->type;
+    unsigned size = entry->size;
     unsigned char res;
     unsigned char src_lfn = 14, dst_lfn = 15;
     unsigned blocks;

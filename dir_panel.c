@@ -34,16 +34,17 @@ void initialize_dir_panels(void)
 {
   unsigned char i;
   for(i = 0; i < DIR_PANEL_MAX; i++) {
-    dir_panels[i].device = 8 + i;
-    dir_panels[i].status = DIR_PANEL_STATUS_UNLOADED;
-    dir_panels[i].has_header_dir_entry = 0;
-    dir_panels[i].has_tail_dir_entry = 0;
-    dir_panels[i].dir_list = NULL;
-    dir_panels[i].dir_list_length = 0;
-    dir_panels[i].view_y = 0;
-    dir_panels[i].cursor_y = 0;
-    dir_panels[i].selected_elem_indices = NULL;
-    dir_panels[i].selected_elem_index_count = 0;
+    struct dir_panel *dir_panel = &dir_panels[i];
+    dir_panel->device = 8 + i;
+    dir_panel->status = DIR_PANEL_STATUS_UNLOADED;
+    dir_panel->has_header_dir_entry = 0;
+    dir_panel->has_tail_dir_entry = 0;
+    dir_panel->dir_list = NULL;
+    dir_panel->dir_list_length = 0;
+    dir_panel->view_y = 0;
+    dir_panel->cursor_y = 0;
+    dir_panel->selected_elem_indices = NULL;
+    dir_panel->selected_elem_index_count = 0;
   }
   current_dir_panel = &dir_panels[0];
 }
@@ -52,10 +53,11 @@ void finalize_dir_panels(void)
 {
   unsigned char i;
   for(i = 0; i < DIR_PANEL_MAX; i++) {
-    if(dir_panels[i].dir_list != NULL)
-      free(dir_panels[i].dir_list);
-    if(dir_panels[i].selected_elem_indices != NULL)
-      free(dir_panels[i].selected_elem_indices);
+    struct dir_panel *dir_panel = &dir_panels[i];
+    if(dir_panel->dir_list != NULL)
+      free(dir_panel->dir_list);
+    if(dir_panel->selected_elem_indices != NULL)
+      free(dir_panel->selected_elem_indices);
   }
 }
 
@@ -63,7 +65,7 @@ static void draw_header_dir_entry(struct dir_panel *dir_panel)
 {
   cputc(0xb0);
   if(dir_panel->has_header_dir_entry) {
-    size_t i, len;
+    unsigned char i, len;
     cprintf("Dev%02d", (unsigned) (dir_panel->device));
     cputc(0x60);
     safely_cputs(dir_panel->header_dir_entry.name);
@@ -87,7 +89,7 @@ static void draw_tail_dir_entry(struct dir_panel *dir_panel)
 {
   cputc(0xad);
   if(dir_panel->has_tail_dir_entry) {
-    size_t i;
+    unsigned char i;
     cprintf("%5u ", dir_panel->tail_dir_entry.size);
     cputs("blocks free");
     for(i = 0; i < 16 - 11; i++) {
@@ -108,7 +110,7 @@ static void draw_tail_dir_entry(struct dir_panel *dir_panel)
 static void draw_dir_list_elem(struct dir_panel *dir_panel, unsigned y)
 {
   struct dir_list_elem *elem = &(dir_panel->dir_list[y]);
-  size_t i, len;
+  unsigned char i, len;
   cputc(0xdd);
   revers(elem->is_selected ^ (y == dir_panel->cursor_y));
   if((y == dir_panel->cursor_y)) textcolor(SCREEN_COLOR_CURSOR);
