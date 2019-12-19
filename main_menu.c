@@ -362,7 +362,7 @@ static void copy_files(void)
       message_dialog_draw();
       message_dialog_loop();
       break;
-    } else if(res != 0) {
+    } else if(res2 > 0) {
       redraw();
       message_dialog_set("Error", error);
       cbm_close(src_lfn);
@@ -402,7 +402,7 @@ static void copy_files(void)
       message_dialog_draw();
       message_dialog_loop();
       break;
-    } else if(res != 0) {
+    } else if(res2 > 0) {
       redraw();
       message_dialog_set("Error", error);
       cbm_close(dst_lfn);
