@@ -324,7 +324,7 @@ static void copy_files(void)
     unsigned char src_device = current_dir_panel->device;
     char *src_file_name = entry->name;
     unsigned char src_file_type = entry->type;
-    unsigned size = entry->size;
+    unsigned size_in_blocks = entry->size;
     unsigned char res;
     unsigned char src_lfn = 14, dst_lfn = 15;
     unsigned blocks;
@@ -332,7 +332,7 @@ static void copy_files(void)
     const char *error;
     char is_stop;
     sprintf(file_name_with_colon, "%s:", src_file_name);
-    if(size != 0)
+    if(size_in_blocks != 0)
       progresses[0].count = 0;
     else
       progresses[0].count = PROGRESS_MAX;
@@ -444,8 +444,8 @@ static void copy_files(void)
         break;
       }
       blocks++;
-      if(size != 0)
-        progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size;
+      if(size_in_blocks != 0)
+        progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size_in_blocks;
       else
         progresses[0].count = PROGRESS_MAX;
       progresses[0].count = umin(PROGRESS_MAX, progresses[0].count);
