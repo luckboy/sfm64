@@ -222,14 +222,14 @@ static void copy_files(void)
     return;
   }
   if(selected_elem_index_count == 0) {
-    message_dialog_set("No files", "No selected files");
+    message_dialog_set("Copy", "No selected files");
     message_dialog_draw();
     message_dialog_loop();
     redraw();
     return;
   }  
   if(!check_file_types_for_copy()) {
-    message_dialog_set("Not support", "Not support for file type");
+    message_dialog_set("Copy", "Not support for file type");
     message_dialog_draw();
     message_dialog_loop();
     redraw();
@@ -507,7 +507,7 @@ static void rename_files(void)
     return;
   }
   if(selected_elem_index_count == 0) {
-    message_dialog_set("No files", "No selected files");
+    message_dialog_set("Rename", "No selected files");
     message_dialog_draw();
     message_dialog_loop();
     redraw();
@@ -632,7 +632,7 @@ void delete_files(void)
     return;
   }
   if(selected_elem_index_count == 0) {
-    message_dialog_set("No files", "No selected files");
+    message_dialog_set("Delete", "No selected files");
     message_dialog_draw();
     message_dialog_loop();
     redraw();
