@@ -689,7 +689,7 @@ void delete_files(void)
   dir_panel_reload(current_dir_panel);  
 }
 
-static void load_file(const char *title, struct file *file, struct file_ext *file_ext)
+static char load_file(const char *title, struct file *file, struct file_ext *file_ext)
 {
   static char file_name_with_colon[18];
   static struct progress progresses[1] = {
@@ -717,7 +717,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   i = current_dir_panel->cursor_y;
   if(!check_file_type_for_load()) {
@@ -725,7 +725,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   entry = &(current_dir_panel->dir_list[i].entry);
   device = current_dir_panel->device;
@@ -737,7 +737,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   file_free(file);
   capacity = (size_in_blocks + 1) * BUFFER_SIZE;
@@ -747,7 +747,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   progress_dialog_set("Loading", progresses, 1);
   sprintf(file_name_with_colon, "%s:", file_name);
@@ -766,7 +766,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   res2 = cmd_channel_read(device, &error, 1);
   if(res2 == -1) {
@@ -777,7 +777,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   } else if(res2 > 0) {
     redraw();
     message_dialog_set("Error", error);
@@ -787,7 +787,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     message_dialog_draw();
     message_dialog_loop();
     redraw();
-    return;
+    return 0;
   }
   bytes = 0;
   blocks = 0;
@@ -803,7 +803,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
         message_dialog_draw();
         message_dialog_loop();
         redraw();
-        return;
+        return 0;
       }
     }
     res2 = cbm_read(lfn, file->text + bytes, BUFFER_SIZE);
@@ -816,7 +816,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
       message_dialog_draw();
       message_dialog_loop();
       redraw();
-      return;
+      return 0;
     } else if(res2 == 0)
       break;
     bytes += res2;
@@ -837,6 +837,7 @@ static void load_file(const char *title, struct file *file, struct file_ext *fil
     file_ext->size_in_blocks = size_in_blocks;
     file_ext->type = file_type;
   }
+  return 1;
 }
 
 static void save_file(void)
