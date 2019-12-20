@@ -24,6 +24,7 @@
 #include "cmd_channel.h"
 #include "dialog.h"
 #include "dir_panel.h"
+#include "file.h"
 #include "main_menu.h"
 #include "screen.h"
 #include "util.h"
@@ -59,6 +60,15 @@ static char check_file_types_for_copy(void)
   for(i = 0; i < current_dir_panel->selected_elem_index_count; i++) {
     unsigned j = current_dir_panel->selected_elem_indices[i];
     unsigned char file_type = current_dir_panel->dir_list[j].entry.type;
+    if(file_type != _CBM_T_SEQ && file_type != _CBM_T_PRG && file_type != _CBM_T_USR) return 0;
+  }
+  return 1;
+}
+
+static char check_file_type_for_load(void)
+{
+  if(current_dir_panel->dir_list_length > 0) {
+    unsigned char file_type = current_dir_panel->dir_list[current_dir_panel->cursor_y].entry.type;
     if(file_type != _CBM_T_SEQ && file_type != _CBM_T_PRG && file_type != _CBM_T_USR) return 0;
   }
   return 1;
@@ -679,6 +689,301 @@ void delete_files(void)
   dir_panel_reload(current_dir_panel);  
 }
 
+static void load_file(const char *title, struct file *file, struct file_ext *file_ext)
+{
+  static char file_name_with_colon[18];
+  static struct progress progresses[1] = {
+    {
+      file_name_with_colon,
+      0,
+      PROGRESS_MAX
+    }
+  };
+  static char cbm_file_name[16 + 3 + 1 + 1 + 1];
+  struct cbm_dirent *entry;
+  unsigned char device;
+  const char *file_name;
+  unsigned char file_type;
+  unsigned size_in_blocks;
+  unsigned bytes, blocks;
+  unsigned char lfn = 14;
+  unsigned char res;
+  int res2;
+  const char *error;
+  unsigned i;
+  size_t capacity;
+  if(current_dir_panel->dir_list_length == 0) {
+    message_dialog_set(title, "No indicated file");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  i = current_dir_panel->cursor_y;
+  if(!check_file_type_for_load()) {
+    message_dialog_set(title, "Not support for file type");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  entry = &(current_dir_panel->dir_list[i].entry);
+  device = current_dir_panel->device;
+  file_name = entry->name;
+  file_type = entry->type;
+  size_in_blocks = entry->size;
+  if(size_in_blocks > 254) {
+    message_dialog_set("Error", "File is too big");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  file_free(file);
+  capacity = (size_in_blocks + 1) * BUFFER_SIZE;
+  file->text = malloc(capacity);
+  if(file->text == NULL) {
+    message_dialog_set("Error", "Out of memory");
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  progress_dialog_set("Loading", progresses, 1);
+  sprintf(file_name_with_colon, "%s:", file_name);
+  if(size_in_blocks != 0)
+    progresses[0].count = 0;
+  else
+    progresses[0].count = PROGRESS_MAX;
+  progress_dialog_draw();
+  sprintf(cbm_file_name, "%s,%s,r", file_name, file_type_to_str_for_copy(file_type));
+  res = cbm_open(lfn, device, 0, cbm_file_name);
+  if(res != 0) {
+    redraw();
+    message_dialog_set("Error", _stroserror(_oserror));
+    cbm_close(lfn);
+    file_free(file);
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  res2 = cmd_channel_read(device, &error, 1);
+  if(res2 == -1) {
+    redraw();
+    message_dialog_set("Error", _stroserror(_oserror));
+    cbm_close(lfn);
+    file_free(file);
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  } else if(res2 > 0) {
+    redraw();
+    message_dialog_set("Error", error);
+    cbm_close(lfn);
+    file_free(file);
+    cmd_channel_close(device);
+    message_dialog_draw();
+    message_dialog_loop();
+    redraw();
+    return;
+  }
+  bytes = 0;
+  blocks = 0;
+  while(1) {
+    if(bytes + BUFFER_SIZE > capacity) {
+      capacity += BUFFER_SIZE;
+      file->text = realloc(file->text, capacity);
+      if(file->text == NULL) {
+        redraw();
+        message_dialog_set("Error", "Out of memory");
+        cbm_close(lfn);
+        cmd_channel_close(device);
+        message_dialog_draw();
+        message_dialog_loop();
+        redraw();
+        return;
+      }
+    }
+    res2 = cbm_read(lfn, file->text + bytes, BUFFER_SIZE);
+    if(res2 == -1) {
+      redraw();
+      message_dialog_set("Error", _stroserror(_oserror));
+      cbm_close(lfn);
+      cmd_channel_close(device);
+      file_free(file);
+      message_dialog_draw();
+      message_dialog_loop();
+      redraw();
+      return;
+    } else if(res2 == 0)
+      break;
+    bytes += res2;
+    blocks++;
+    if(size_in_blocks != 0)
+      progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size_in_blocks;
+    else
+      progresses[0].count = PROGRESS_MAX;
+    progresses[0].count = umin(PROGRESS_MAX, progresses[0].count);
+    progress_dialog_draw();
+  }
+  cbm_close(lfn);
+  cmd_channel_close(device);
+  redraw();
+  file->size = bytes;
+  if(file_ext != NULL) {
+    strcpy(file_ext->name, file_name);
+    file_ext->size_in_blocks = size_in_blocks;
+    file_ext->type = file_type;
+  }
+}
+
+static void save_file(void)
+{
+  static char file_name[17];
+  static char file_type_buf[17];
+  static char file_name_with_colon[18];
+  static struct input inputs[2] = {
+    {
+      "File name:",
+      file_name,
+      16
+    },
+    {
+      "File type:",
+      file_type_buf,
+      16
+    }
+  };
+  static struct progress progresses[1] = {
+    {
+      file_name_with_colon,
+      0,
+      PROGRESS_MAX
+    }
+  };
+  static char cbm_file_name[16 + 3 + 1 + 1 + 1];
+  unsigned char device;
+  int file_type;
+  unsigned bytes, blocks;
+  unsigned size_in_bytes, size_in_blocks;
+  unsigned char lfn = 14;
+  unsigned char res;
+  int res2;
+  const char *error;
+  if(loaded_file.text == NULL) {
+    message_dialog_set("Save", "No loaded file");
+    message_dialog_draw();
+    message_dialog_loop();
+    return;
+  }
+  strcpy(file_name, loaded_file_ext.name);
+  file_type_buf[0] = 0;
+  while(1) {
+    input_dialog_set("Save", inputs, 2);
+    input_dialog_draw();
+    if(!input_dialog_loop()) {
+      redraw();
+      return;
+    }
+    redraw();
+    if(!check_file_name(file_name)) {
+      message_dialog_set("Field", "Incorrect file name");
+      message_dialog_draw();
+      message_dialog_loop();
+      redraw();
+      continue;
+    }
+    file_type = str_to_file_type_for_copy(file_type_buf);
+    if(file_type == -2) {
+      message_dialog_set("Field", "Incorrect file type");
+      message_dialog_draw();
+      message_dialog_loop();
+      redraw();
+      continue;
+    }
+    break;
+  }
+  device = current_dir_panel->device;
+  size_in_bytes = loaded_file.size;
+  size_in_blocks = loaded_file_ext.size_in_blocks;
+  progress_dialog_set("Saving", progresses, 1);
+  sprintf(file_name_with_colon, "%s:", file_name);
+  if(size_in_blocks != 0)
+    progresses[0].count = 0;
+  else
+    progresses[0].count = PROGRESS_MAX;
+  progress_dialog_draw();
+  sprintf(cbm_file_name, "%s,%s,w", file_name,  file_type_to_str_for_copy2(file_type, loaded_file_ext.type));
+  res2 = delete_file(device, file_name, &error);
+  if(res2 == -1) {
+    redraw();
+    message_dialog_set("Error", _stroserror(_oserror));
+    message_dialog_draw();
+    message_dialog_loop();
+    dir_panel_reload(current_dir_panel);
+    return;
+  }
+  res = cbm_open(lfn, device, 1, cbm_file_name);
+  if(res != 0) {
+    redraw();
+    message_dialog_set("Error", _stroserror(_oserror));
+    cbm_close(lfn);
+    message_dialog_draw();
+    message_dialog_loop();
+    dir_panel_reload(current_dir_panel);
+    return;
+  }
+  res2 = cmd_channel_read(device, &error, 1);
+  if(res2 == -1) {
+    redraw();
+    message_dialog_set("Error", _stroserror(_oserror));
+    cbm_close(lfn);
+    message_dialog_draw();
+    message_dialog_loop();
+    dir_panel_reload(current_dir_panel);
+    return;
+  } else if(res2 > 0) {
+    redraw();
+    message_dialog_set("Error", error);
+    cbm_close(lfn);
+    cmd_channel_close(device);
+    message_dialog_draw();
+    message_dialog_loop();
+    dir_panel_reload(current_dir_panel);
+    return;
+  }
+  bytes = 0;
+  blocks = 0;
+  while(bytes < size_in_bytes) {
+    unsigned size = umin(size_in_bytes - bytes, BUFFER_SIZE); 
+    res2 = cbm_write(lfn, loaded_file.text + bytes, size);
+    if(res2 == -1) {
+      redraw();
+      message_dialog_set("Error", _stroserror(_oserror));
+      cbm_close(lfn);
+      cmd_channel_close(device);
+      message_dialog_draw();
+      message_dialog_loop();
+      dir_panel_reload(current_dir_panel);
+      return;
+    }
+    bytes += size;
+    blocks++;
+    if(size_in_blocks != 0)
+      progresses[0].count = (((unsigned long) blocks) * PROGRESS_MAX) / size_in_blocks;
+    else
+      progresses[0].count = PROGRESS_MAX;
+    progresses[0].count = umin(PROGRESS_MAX, progresses[0].count);
+    progress_dialog_draw();
+  }
+  cbm_close(lfn);
+  cmd_channel_close(device);
+  redraw();
+  dir_panel_reload(current_dir_panel);
+}
+
 void main_menu_loop(void)
 {
   unsigned char is_exit = 0;
@@ -732,6 +1037,15 @@ void main_menu_loop(void)
       break;
     case 'd':
       delete_files();
+      break;
+    case 'l':
+      load_file("Load", &loaded_file, &loaded_file_ext);
+      break;
+    case 's':
+      save_file();
+      break;
+    case 'f':
+      file_free(&loaded_file);
       break;
     case 'q':
       is_exit = 1;

@@ -15,27 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "cmd_channel.h"
-#include "dialog.h"
-#include "dir_panel.h"
-#include "file.h"
-#include "screen.h"
-#include "main_menu.h"
+#ifndef _FILE_H
+#define _FILE_H
 
-int main(void)
+struct file
 {
-  initialize_cmd_channels();
-  initialize_screen();
-  initialize_dir_panels();
-  initialize_dialogs();
-  initialize_files();
-  main_menu_draw();
-  dir_panel_reload(current_dir_panel);
-  main_menu_loop();
-  finalize_files();
-  finalize_dialogs();
-  finalize_dir_panels();
-  finalize_screen();
-  finalize_cmd_channels();
-  return 0;
-}
+  char *text;
+  unsigned size;
+};
+
+struct file_ext
+{
+  char name[17];
+  unsigned size_in_blocks;
+  unsigned char type;
+};
+
+extern struct file view_file;
+
+extern struct file loaded_file;
+extern struct file_ext loaded_file_ext;
+
+
+void initialize_files(void);
+void finalize_files(void);
+
+void file_free(struct file *file);
+
+#endif
