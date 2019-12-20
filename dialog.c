@@ -319,7 +319,10 @@ char input_dialog_loop(void)
       break;
     case CH_CURS_UP:
       if(i > 0) {
-        input_dialog.focus_index--;
+        if(i < input_dialog.input_count + 1)
+          input_dialog.focus_index--;
+        else
+          input_dialog.focus_index -= 2;
         input_dialog_draw();
       }
       break;
