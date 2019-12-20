@@ -441,7 +441,7 @@ static void copy_files(void)
       } else if(res2 == 0)
         break;
       res3 = cbm_write(dst_lfn, buf, res2);
-      if(res2 == -1) {
+      if(res3 == -1) {
         redraw();
         message_dialog_set("Error", _stroserror(_oserror));
         cbm_close(dst_lfn);
