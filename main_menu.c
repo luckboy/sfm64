@@ -1054,7 +1054,12 @@ void main_menu_loop(void)
       file_free(&loaded_file);
       break;
     case 'q':
-      is_exit = 1;
+      yes_no_dialog_set("Quit", "Quit SFM64?");
+      yes_no_dialog_draw();
+      if(yes_no_dialog_loop())
+        is_exit = 1;
+      else
+        redraw();
       break;
     }
   }
