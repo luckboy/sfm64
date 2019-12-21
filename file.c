@@ -26,23 +26,23 @@ struct file_ext loaded_file_ext;
 
 void initialize_files(void)
 {
-  view_file.text = NULL;
+  view_file.content = NULL;
   view_file.size = 0;
-  loaded_file.text = NULL;
+  loaded_file.content = NULL;
   loaded_file.size = 0;
 }
 
 void finalize_files(void)
 {
-  if(view_file.text != NULL) free(view_file.text);
-  if(loaded_file.text != NULL) free(loaded_file.text);
+  if(view_file.content != NULL) free(view_file.content);
+  if(loaded_file.content != NULL) free(loaded_file.content);
 }
 
 void file_free(struct file *file)
 {
-  if(file->text != NULL) {
-    free(file->text);
-    file->text = NULL;
+  if(file->content != NULL) {
+    free(file->content);
+    file->content = NULL;
     file->size = 0;
   }
 }

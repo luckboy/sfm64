@@ -741,8 +741,8 @@ static char load_file(const char *title, struct file *file, struct file_ext *fil
   }
   file_free(file);
   capacity = (size_in_blocks + 1) * BUFFER_SIZE;
-  file->text = malloc(capacity);
-  if(file->text == NULL) {
+  file->content = malloc(capacity);
+  if(file->content == NULL) {
     message_dialog_set("Error", "Out of memory");
     message_dialog_draw();
     message_dialog_loop();
@@ -794,8 +794,8 @@ static char load_file(const char *title, struct file *file, struct file_ext *fil
   while(1) {
     if(bytes + BUFFER_SIZE > capacity) {
       capacity += BUFFER_SIZE;
-      file->text = realloc(file->text, capacity);
-      if(file->text == NULL) {
+      file->content = realloc(file->content, capacity);
+      if(file->content == NULL) {
         redraw();
         message_dialog_set("Error", "Out of memory");
         cbm_close(lfn);
@@ -806,7 +806,7 @@ static char load_file(const char *title, struct file *file, struct file_ext *fil
         return 0;
       }
     }
-    res2 = cbm_read(lfn, file->text + bytes, BUFFER_SIZE);
+    res2 = cbm_read(lfn, file->content + bytes, BUFFER_SIZE);
     if(res2 == -1) {
       redraw();
       message_dialog_set("Error", _stroserror(_oserror));
@@ -873,7 +873,7 @@ static void save_file(void)
   unsigned char res;
   int res2;
   const char *error;
-  if(loaded_file.text == NULL) {
+  if(loaded_file.content == NULL) {
     message_dialog_set("Save", "No loaded file");
     message_dialog_draw();
     message_dialog_loop();
@@ -959,7 +959,7 @@ static void save_file(void)
   blocks = 0;
   while(bytes < size_in_bytes) {
     unsigned size = umin(size_in_bytes - bytes, BUFFER_SIZE); 
-    res2 = cbm_write(lfn, loaded_file.text + bytes, size);
+    res2 = cbm_write(lfn, loaded_file.content + bytes, size);
     if(res2 == -1) {
       redraw();
       message_dialog_set("Error", _stroserror(_oserror));

@@ -20,7 +20,7 @@
 
 struct file
 {
-  char *text;
+  char *content;
   unsigned size;
 };
 
