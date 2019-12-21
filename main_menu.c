@@ -923,6 +923,7 @@ static void save_file(void)
     message_dialog_set("Error", _stroserror(_oserror));
     message_dialog_draw();
     message_dialog_loop();
+    redraw();
     dir_panel_reload(current_dir_panel);
     return;
   }
@@ -933,6 +934,7 @@ static void save_file(void)
     cbm_close(lfn);
     message_dialog_draw();
     message_dialog_loop();
+    redraw();
     dir_panel_reload(current_dir_panel);
     return;
   }
@@ -943,6 +945,7 @@ static void save_file(void)
     cbm_close(lfn);
     message_dialog_draw();
     message_dialog_loop();
+    redraw();
     dir_panel_reload(current_dir_panel);
     return;
   } else if(res2 > 0) {
@@ -952,6 +955,7 @@ static void save_file(void)
     cmd_channel_close(device);
     message_dialog_draw();
     message_dialog_loop();
+    redraw();
     dir_panel_reload(current_dir_panel);
     return;
   }
@@ -967,6 +971,7 @@ static void save_file(void)
       cmd_channel_close(device);
       message_dialog_draw();
       message_dialog_loop();
+      redraw();
       dir_panel_reload(current_dir_panel);
       return;
     }
