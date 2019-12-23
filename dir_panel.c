@@ -235,6 +235,7 @@ void dir_panel_reload(struct dir_panel *dir_panel)
   dir_panel->status = DIR_PANEL_STATUS_LOADING;
   dir_panel->has_header_dir_entry = 0;
   dir_panel->has_tail_dir_entry = 0;
+  dir_panel->dir_list_length = 0;
   dir_panel->selected_elem_index_count = 0;
   dir_panel_draw(dir_panel);
   res = cbm_opendir(lfn, dir_panel->device, "$");
@@ -388,7 +389,17 @@ unsigned *dir_panel_selected_elem_indices(struct dir_panel *dir_panel, unsigned 
 
 void dir_panel_set_status_to_unloaded(struct dir_panel *dir_panel)
 {
+  if(dir_panel->dir_list != NULL) {
+    free(dir_panel->dir_list);
+    dir_panel->dir_list = NULL;
+  }
+  if(dir_panel->selected_elem_indices != NULL) {
+    free(dir_panel->selected_elem_indices);
+    dir_panel->selected_elem_indices = NULL;
+  }
   dir_panel->status = DIR_PANEL_STATUS_UNLOADED;
   dir_panel->has_header_dir_entry = 0;
   dir_panel->has_tail_dir_entry = 0;
+  dir_panel->dir_list_length = 0;
+  dir_panel->selected_elem_index_count = 0;
 }
