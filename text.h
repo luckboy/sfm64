@@ -15,30 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "cmd_channel.h"
-#include "dialog.h"
-#include "dir_panel.h"
-#include "file.h"
-#include "main_menu.h"
-#include "screen.h"
-#include "text.h"
+#ifndef _TEXT_H
+#define _TEXT_H
 
-int main(void)
-{
-  initialize_cmd_channels();
-  initialize_screen();
-  initialize_dir_panels();
-  initialize_dialogs();
-  initialize_files();
-  initialize_text();
-  main_menu_draw();
-  dir_panel_reload(current_dir_panel);
-  main_menu_loop();
-  finalize_text();
-  finalize_files();
-  finalize_dialogs();
-  finalize_dir_panels();
-  finalize_screen();
-  finalize_cmd_channels();
-  return 0;
-}
+void initialize_text(void);
+void finalize_text(void);
+
+void text_set(void);
+void text_draw(void);
+void text_move_view_up(void);
+void text_move_view_down(void);
+void text_move_view_left(void);
+void text_move_view_right(void);
+
+#endif

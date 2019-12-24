@@ -27,7 +27,9 @@
 #include "file.h"
 #include "main_menu.h"
 #include "screen.h"
+#include "text.h"
 #include "util.h"
+#include "view_menu.h"
 
 #define BUFFER_SIZE                     256
 #define PROGRESS_MAX                    18
@@ -1052,6 +1054,17 @@ void main_menu_loop(void)
       break;
     case 'f':
       file_free(&loaded_file);
+      break;
+    case 'v':
+      if(load_file("View", &view_file, NULL)) {
+        screen_clear();
+        view_menu_draw();
+        text_set();
+        text_draw();
+        view_menu_loop();
+        file_free(&view_file);
+        redraw();
+      }
       break;
     case 'q':
       yes_no_dialog_set("Quit", "Quit SFM64?");

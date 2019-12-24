@@ -15,30 +15,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "cmd_channel.h"
-#include "dialog.h"
-#include "dir_panel.h"
-#include "file.h"
-#include "main_menu.h"
+#include <conio.h>
 #include "screen.h"
 #include "text.h"
+#include "view_menu.h"
 
-int main(void)
+void view_menu_draw(void)
 {
-  initialize_cmd_channels();
-  initialize_screen();
-  initialize_dir_panels();
-  initialize_dialogs();
-  initialize_files();
-  initialize_text();
-  main_menu_draw();
-  dir_panel_reload(current_dir_panel);
-  main_menu_loop();
-  finalize_text();
-  finalize_files();
-  finalize_dialogs();
-  finalize_dir_panels();
-  finalize_screen();
-  finalize_cmd_channels();
-  return 0;
+  char *menu = "Q-Quit                                  ";
+  gotoxy(0, screen_height - VIEW_MENU_HEIGHT);
+  cputs(menu);
+}
+
+void view_menu_loop(void)
+{
+  char is_exit = 0;
+  while(!is_exit) {
+    switch(cgetc()) {
+    case CH_CURS_UP:
+      text_move_view_up();
+      break;
+    case CH_CURS_DOWN:
+      text_move_view_down();
+      break;
+    case CH_CURS_LEFT:
+      text_move_view_left();
+      break;
+    case CH_CURS_RIGHT:
+      text_move_view_right();
+      break;
+    case CH_STOP:
+    case CH_ESC:
+    case 'q':
+      is_exit = 1;
+      break;
+    }
+  }
 }
