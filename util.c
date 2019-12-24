@@ -65,7 +65,7 @@ char check_file_name(const char *file_name)
 {
   const char *s = file_name;
   while(*s) {
-    if(strchr("*,:=?@", *s) != NULL) return 0;
+    if(strchr("\"*,:=?@", *s) != NULL) return 0;
     s++;
   }
   return 1;
