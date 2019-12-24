@@ -16,14 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <conio.h>
+#include <string.h>
 #include "screen.h"
 #include "text.h"
+#include "util.h"
 #include "view_menu.h"
 
 void view_menu_draw(void)
 {
   char *menu = "Q-Quit                                  ";
-  gotoxy(0, screen_height - VIEW_MENU_HEIGHT);
+  size_t len = strlen(menu);
+  gotoxy(center_x(len), screen_height - VIEW_MENU_HEIGHT);
   cputs(menu);
 }
 
