@@ -299,10 +299,12 @@ void dir_panel_reload(struct dir_panel *dir_panel)
         dir_panel->header_dir_entry = entry;
       } else {
         if(i >= capacity) {
+          struct dir_list_elem *old_dir_list = dir_panel->dir_list;
           capacity += 8;
-          dir_panel->dir_list = realloc(dir_panel->dir_list, sizeof(struct dir_list_elem) * capacity);
+          dir_panel->dir_list = realloc(old_dir_list, sizeof(struct dir_list_elem) * capacity);
           if(dir_panel->dir_list == NULL) {
             dir_panel->error = "Out of memory";
+            free(old_dir_list);
             cbm_closedir(lfn);
             cmd_channel_close(dir_panel->device);
             dir_panel->status = DIR_PANEL_STATUS_ERROR;

@@ -795,11 +795,13 @@ static char load_file(const char *title, struct file *file, struct file_ext *fil
   blocks = 0;
   while(1) {
     if(bytes + BUFFER_SIZE > capacity) {
+      char *old_content = file->content;
       capacity += BUFFER_SIZE;
-      file->content = realloc(file->content, capacity);
+      file->content = realloc(old_content, capacity);
       if(file->content == NULL) {
         redraw();
         message_dialog_set("Error", "Out of memory");
+        free(old_content);
         cbm_close(lfn);
         cmd_channel_close(device);
         message_dialog_draw();
