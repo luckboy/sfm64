@@ -31,7 +31,7 @@ struct text
   char *view_y_ptr;
 };
 
-struct text text;
+static struct text text;
 
 void initialize_text(void)
 {
