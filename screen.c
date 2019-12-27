@@ -21,17 +21,26 @@
 unsigned char screen_width;
 unsigned char screen_height;
 
+static unsigned char saved_border_color;
+static unsigned char saved_bg_color;
+static unsigned char saved_fg_color;
+
 void initialize_screen(void)
 {
-  bordercolor(SCREEN_COLOR_BACKGROUND);
-  bgcolor(SCREEN_COLOR_BACKGROUND);
-  textcolor(SCREEN_COLOR_FOREGROUND);
+  saved_border_color = bordercolor(SCREEN_COLOR_BACKGROUND);
+  saved_bg_color = bgcolor(SCREEN_COLOR_BACKGROUND);
+  saved_fg_color = textcolor(SCREEN_COLOR_FOREGROUND);
   clrscr();
   screensize(&screen_width, &screen_height);
 }
 
 void finalize_screen(void)
-{ clrscr(); }
+{
+  bordercolor(saved_border_color);
+  bgcolor(saved_bg_color);
+  textcolor(saved_fg_color);
+  clrscr();
+}
 
 void screen_clear(void)
 { clrscr(); }
