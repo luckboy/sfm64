@@ -50,4 +50,8 @@ void yes_no_dialog_set(const char *title, const char *msg);
 void yes_no_dialog_draw(void);
 char yes_no_dialog_loop(void);
 
+void about_dialog_set(void);
+void about_dialog_draw(void);
+void about_dialog_loop(void);
+
 #endif

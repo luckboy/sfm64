@@ -17,6 +17,7 @@
  */
 #include <conio.h>
 #include <string.h>
+#include "dialog.h"
 #include "screen.h"
 #include "text.h"
 #include "util.h"
@@ -24,10 +25,17 @@
 
 void view_menu_draw(void)
 {
-  char *menu = "Q-Quit                                  ";
+  char *menu = "A-About Q-Quit                          ";
   size_t len = strlen(menu);
   gotoxy(center_x(len), screen_height - VIEW_MENU_HEIGHT);
   cputs(menu);
+}
+
+static void redraw()
+{
+  screen_clear();
+  view_menu_draw();
+  text_draw();
 }
 
 void view_menu_loop(void)
@@ -46,6 +54,12 @@ void view_menu_loop(void)
       break;
     case CH_CURS_RIGHT:
       text_move_view_right();
+      break;
+    case 'a':
+      about_dialog_set();
+      about_dialog_draw();
+      about_dialog_loop();
+      redraw();
       break;
     case CH_STOP:
     case CH_ESC:

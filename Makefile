@@ -30,4 +30,4 @@ main_menu.o: main_menu.c main_menu.h cmd_channel.h dialog.h dir_panel.h file.h s
 screen.o: screen.c screen.h
 text.o: text.c text.h file.h screen.h util.h
 util.o: util.c util.h
-view_menu.o: view_menu.c view_menu.h screen.h text.h util.h
+view_menu.o: view_menu.c view_menu.h dialog.h screen.h text.h util.h

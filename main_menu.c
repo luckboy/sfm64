@@ -39,7 +39,7 @@ void main_menu_draw(void)
   static char *menu[MAIN_MENU_HEIGHT] = {
     "8-8  9-9  R-Reload dir C-Copy N-Rename  ",
     "0-10 1-11 D-Delete L-Load S-Save F-Free ",
-    "          V-View Q-Quit                 "
+    "          V-View A-About Q-Quit         "
   };
   unsigned char i;
   for(i = 0; i < MAIN_MENU_HEIGHT; i++) {
@@ -1067,6 +1067,12 @@ void main_menu_loop(void)
         file_free(&view_file);
         redraw();
       }
+      break;
+    case 'a':
+      about_dialog_set();
+      about_dialog_draw();
+      about_dialog_loop();
+      redraw();
       break;
     case 'q':
       yes_no_dialog_set("Quit", "Quit SFM64?");

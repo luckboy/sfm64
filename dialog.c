@@ -24,6 +24,8 @@
 #include "screen.h"
 #include "util.h"
 
+#define ABOUT_DIALOG_LABEL_COUNT        5
+
 struct input_dialog
 {
   unsigned char width;
@@ -61,13 +63,24 @@ struct yes_no_dialog
   unsigned char focus_index;
 };
 
+struct about_dialog
+{
+  unsigned char width;
+  unsigned char height;
+  const char *title;
+  const char *labels[ABOUT_DIALOG_LABEL_COUNT];
+  unsigned char focus_index;
+};
+
 static struct input_dialog input_dialog;
 static struct progress_dialog progress_dialog;
 static struct message_dialog message_dialog;
 static struct yes_no_dialog yes_no_dialog;
+static struct about_dialog about_dialog;
 
 void initialize_dialogs(void)
 {
+  unsigned char i;
   input_dialog.width = 0;
   input_dialog.height = 0;
   input_dialog.title = NULL;
@@ -89,6 +102,13 @@ void initialize_dialogs(void)
   yes_no_dialog.title = NULL;
   yes_no_dialog.message = NULL;
   yes_no_dialog.focus_index = 0;
+  about_dialog.width = 0;
+  about_dialog.height = 0;
+  about_dialog.title = NULL;
+  for(i = 0; i < ABOUT_DIALOG_LABEL_COUNT; i++) {
+    about_dialog.labels[i] = NULL;
+  }
+  about_dialog.focus_index = 0;
 }
 
 void finalize_dialogs(void) {}
@@ -557,4 +577,68 @@ char yes_no_dialog_loop(void)
     }
   }
   return is_yes;
+}
+
+/*
+ * An about dialog.
+ */
+
+void about_dialog_set(void)
+{
+  unsigned char max_width;
+  unsigned char i;
+  about_dialog.title = "About";
+  about_dialog.labels[0] = "Simple File Manager 64 0.1.0";
+  about_dialog.labels[1] = "(C) 2019 Lukasz Szpakowski";
+  about_dialog.labels[2] = "";
+  about_dialog.labels[3] = "This program is licensed under";
+  about_dialog.labels[4] = "GPLv3+.";
+  about_dialog.focus_index = 0;
+  max_width = even(strlen(about_dialog.title)) + 2;
+  for(i = 0; i < ABOUT_DIALOG_LABEL_COUNT; i++) {
+    max_width = max(max_width, even(strlen(about_dialog.labels[i])) + 2);
+  }
+  max_width = max(max_width, 6 + 2);
+  about_dialog.width = max_width;
+  about_dialog.height = ABOUT_DIALOG_LABEL_COUNT + 3 + 2;
+}
+
+void about_dialog_draw(void)
+{
+  unsigned char i;
+  unsigned char x = center_x(about_dialog.width);
+  unsigned char y = center_y(about_dialog.height);
+  gotoxy(x, y);
+  draw_title(about_dialog.title, about_dialog.width);
+  y++;
+  gotoxy(x, y);
+  draw_empty(about_dialog.width);
+  y++;
+  for(i = 0; i < ABOUT_DIALOG_LABEL_COUNT; i++, y++) {
+    gotoxy(x, y);
+    draw_label(about_dialog.labels[i], about_dialog.width);
+  }
+  gotoxy(x, y);
+  draw_empty(about_dialog.width);
+  y++;
+  gotoxy(x, y);
+  draw_one_button("OK", about_dialog.width, 1);
+  y++;
+  gotoxy(x, y);
+  draw_empty(about_dialog.width);
+}
+
+void about_dialog_loop(void)
+{
+  char is_exit = 0;
+  while(!is_exit) {
+    switch(cgetc()) {
+    case '\n':
+    case ' ':
+    case CH_STOP:
+    case CH_ESC:
+      is_exit = 1;
+      break;
+    }
+  }
 }
