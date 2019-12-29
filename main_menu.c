@@ -216,8 +216,8 @@ static void copy_files(void)
       PROGRESS_MAX
     }
   };
-  static char src_cbm_file_name[16 + 3 + 1 + 1 + 1];
-  static char dst_cbm_file_name[16 + 3 + 1 + 1 + 1];
+  static char src_cbm_file_name[16 + 1 + 3 + 1 + 1 + 1];
+  static char dst_cbm_file_name[16 + 1 + 3 + 1 + 1 + 1];
   static char buf[BUFFER_SIZE];
   unsigned char dst_device;
   int dst_file_type;
@@ -701,7 +701,7 @@ static char load_file(const char *title, struct file *file, struct file_ext *fil
       PROGRESS_MAX
     }
   };
-  static char cbm_file_name[16 + 3 + 1 + 1 + 1];
+  static char cbm_file_name[16 + 1 + 3 + 1 + 1 + 1];
   struct cbm_dirent *entry;
   unsigned char device;
   const char *file_name;
@@ -868,7 +868,7 @@ static void save_file(void)
       PROGRESS_MAX
     }
   };
-  static char cbm_file_name[16 + 3 + 1 + 1 + 1];
+  static char cbm_file_name[16 + 1 + 3 + 1 + 1 + 1];
   unsigned char device;
   int file_type;
   unsigned bytes, blocks;
